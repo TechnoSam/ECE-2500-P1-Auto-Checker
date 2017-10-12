@@ -1,5 +1,6 @@
 
 import argparse
+import datetime
 import subprocess
 import sys
 
@@ -10,6 +11,13 @@ INVALID_TESTS = [4, 5, 6]
 ALL_TESTS = []
 ALL_TESTS.extend(VALID_TESTS)
 ALL_TESTS.extend(INVALID_TESTS)
+
+
+def log(line, verbose):
+
+    if verbose:
+        sys.stdout.write(line)
+    return line
 
 
 def file_compare(generated_fname, given_fname):
@@ -58,13 +66,19 @@ if __name__ == "__main__":
                 print("No such test: %s" % test)
                 sys.exit(1)
     else:
-        tests_to_run = [1, 2, 3]
+        tests_to_run = VALID_TESTS
 
     failures = 0
 
+    output = ""
+
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H.%M.%S")
+
+    output += log("STARTING TESTING AT %s\n\n" % timestamp, True)
+
     for test in tests_to_run:
 
-        print("STARTING TEST FOR \"test_case%d.s\"" % test)
+        output += log("STARTING TEST FOR \"test_case%d.s\"\n" % test, args.verbose)
 
         if args.python:
             cmd = ["python", "../myAssembler.py" if not args.path else args.path, "test_case%d.obj" % test]
@@ -76,24 +90,34 @@ if __name__ == "__main__":
         except subprocess.CalledProcessError as e:
             print(e.output)
             if test in VALID_TESTS:
-                print("FAIL: Did not assemble valid \"test_case%d.s\" (returned %d)\n" % (test, e.returncode))
+                output += log("FAIL: Did not assemble valid \"test_case%d.s\" (returned %d)\n\n" % (test, e.returncode),
+                              args.verbose)
                 failures += 1
             else:
-                print("PASS: Refused to assemble invalid \"test_case%d.s\" (returned %d)\n" % (test, e.returncode))
+                output += log("PASS: Refused to assemble invalid \"test_case%d.s\" (returned %d)\n\n"
+                              % (test, e.returncode), args.verbose)
             continue
 
         if test in INVALID_TESTS:
-            print("FAIL: Assembled invalid \"test_case%d.s\" with no error\n" % test)
+            output += log("FAIL: Assembled invalid \"test_case%d.s\" with no error\n\n" % test, args.verbose)
         else:
             result, reason = file_compare("test_case%s.obj" % test, "test_case%s_given.obj" % test)
             if not result:
                 failures += 1
-                print("FAIL: " + reason + "\n")
+                output += log("FAIL: " + reason + "\n\n", args.verbose)
             else:
-                print("PASS: Generated object file matches given\n")
+                output += log("PASS: Generated object file matches given\n\n", args.verbose)
 
-    print("")
+    output += log("", args.verbose)
     if failures == 0:
-        print("ALL TESTS PASS")
+        output += log("ALL TESTS PASS\n", True)
     else:
-        print("FAILED %d/%d TESTS" % (failures, len(tests_to_run)))
+        output += log("FAILED %d/%d TESTS\n" % (failures, len(tests_to_run)), True)
+
+    if args.save_output:
+        out_fname = "logs/test_" + timestamp + ".log"
+    else:
+        out_fname = "logs/last_test.log"
+
+    with open(out_fname, "w") as out_f:
+        out_f.write(output)
