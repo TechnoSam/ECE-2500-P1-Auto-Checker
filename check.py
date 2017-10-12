@@ -1,10 +1,15 @@
 
+import argparse
 import subprocess
 import sys
 
 VALID_TESTS = [1, 2, 3]
 
 INVALID_TESTS = [4, 5, 6]
+
+ALL_TESTS = []
+ALL_TESTS.extend(VALID_TESTS)
+ALL_TESTS.extend(INVALID_TESTS)
 
 
 def file_compare(generated_fname, given_fname):
@@ -28,14 +33,43 @@ def file_compare(generated_fname, given_fname):
 
 if __name__ == "__main__":
 
-    tests_to_run = [1, 2, 3]
+    parser = argparse.ArgumentParser(description="ECE 2500 Project 1\nAuto Checker")
+
+    language = parser.add_mutually_exclusive_group(required=True)
+    language.add_argument("-p", "--python", help="Specify that myAssembler is written in python", action="store_true")
+    language.add_argument("-c", "--cpp", help="Specify that myAssembler is written in C++", action="store_true")
+    parser.add_argument("--path", help="Specify the path to the myAssembler script or executable "
+                                       "(default \"../myAssembler.py\" or \"../myAssembler\")")
+    parser.add_argument("-t", "--tests", help="Specify which tests should be run e.g. \"1, 2, 3\" (default all)")
+    parser.add_argument("-o", "--save-output", help="Save the output with a timestamp (default \"last_test.log\")",
+                        action="store_true")
+    parser.add_argument("-v", "--verbose", help="Enable verbose output", action="store_true")
+
+    args = parser.parse_args()
+
+    if args.tests:
+        try:
+            tests_to_run = [int(x) for x in args.tests.split(",")]
+        except:
+            print("Unrecognized test list. Format: \"1, 2, 3\"")
+            sys.exit(1)
+        for test in tests_to_run:
+            if test not in ALL_TESTS:
+                print("No such test: %s" % test)
+                sys.exit(1)
+    else:
+        tests_to_run = [1, 2, 3]
+
     failures = 0
 
     for test in tests_to_run:
 
         print("STARTING TEST FOR \"test_case%d.s\"" % test)
 
-        cmd = ["python", "../myAssembler.py", "test_case%d.obj" % test]
+        if args.python:
+            cmd = ["python", "../myAssembler.py" if not args.path else args.path, "test_case%d.obj" % test]
+        else:
+            cmd = ["../myAssembler" if not args.path else args.path, "test_case%d.obj" % test]
 
         try:
             subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
