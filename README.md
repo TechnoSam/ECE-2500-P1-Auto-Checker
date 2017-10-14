@@ -3,7 +3,7 @@ Automatic Checking script for ECE 2500 (Fall 2017) Project 1
 
 **Tested with Python 2.7.13**
 
-This script will automatically run myAssembler for Project 1 and compare the output to what is expected and report differences.
+This script will automatically run myAssembler for Project 1 and compare the output to what is expected and report differences. Test cases that do not assemble are expected to exit with non-zero return codes.
 
 You can import this as a submodule if you want to take advantage of the default paths, but you can also clone it anywhere and give it the path to your executable or script.
 

@@ -4,9 +4,9 @@ import datetime
 import subprocess
 import sys
 
-VALID_TESTS = [1, 2, 3]
+VALID_TESTS = [1, 2, 3, 9]
 
-INVALID_TESTS = [4, 5, 6]
+INVALID_TESTS = [4, 5, 6, 7, 8]
 
 ALL_TESTS = []
 ALL_TESTS.extend(VALID_TESTS)
@@ -66,7 +66,7 @@ if __name__ == "__main__":
                 print("No such test: %s" % test)
                 sys.exit(1)
     else:
-        tests_to_run = VALID_TESTS
+        tests_to_run = ALL_TESTS
 
     failures = 0
 
@@ -88,7 +88,7 @@ if __name__ == "__main__":
         try:
             subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
         except subprocess.CalledProcessError as e:
-            print(e.output)
+            output += log(e.output, args.verbose)
             if test in VALID_TESTS:
                 output += log("FAIL: Did not assemble valid \"test_case%d.s\" (returned %d)\n\n" % (test, e.returncode),
                               args.verbose)
@@ -100,6 +100,7 @@ if __name__ == "__main__":
 
         if test in INVALID_TESTS:
             output += log("FAIL: Assembled invalid \"test_case%d.s\" with no error\n\n" % test, args.verbose)
+            failures += 1
         else:
             result, reason = file_compare("test_case%s.obj" % test, "test_case%s_given.obj" % test)
             if not result:
