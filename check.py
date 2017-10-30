@@ -81,9 +81,9 @@ if __name__ == "__main__":
         output += log("STARTING TEST FOR \"test_case%d.s\"\n" % test, args.verbose)
 
         if args.python:
-            cmd = ["python", "../myAssembler.py" if not args.path else args.path, "test_case%d.obj" % test]
+            cmd = ["python", "../myAssembler.py" if not args.path else args.path, "test_case%d.s" % test]
         else:
-            cmd = ["../myAssembler" if not args.path else args.path, "test_case%d.obj" % test]
+            cmd = ["../myAssembler" if not args.path else args.path, "test_case%d.s" % test]
 
         try:
             subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
